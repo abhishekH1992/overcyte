@@ -6,8 +6,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
+    const search = searchParams.get("search") || "";
+    const sortBy = (searchParams.get("sortBy") as "date" | "likes") || "date";
 
-    const result = await getPostsWithAuthorsPaginated(page, limit);
+    const result = await getPostsWithAuthorsPaginated(page, limit, search, sortBy);
 
     return NextResponse.json(result);
   } catch (error) {

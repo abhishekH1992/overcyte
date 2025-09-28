@@ -8,6 +8,7 @@ import { PrefetchedPosts } from "@/components/prefetched-posts";
 import { CreatePostForm } from "@/components/create-post-form";
 import { logoutAction } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -53,12 +54,12 @@ export default async function DashboardPage() {
               <div className="mt-6 bg-white shadow rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-4">Demo Pages</h3>
                 <div className="space-y-2">
-                  <a
+                  <Link
                     href="/performance-demo"
                     className="block px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                   >
                     Performance Demo
-                  </a>
+                  </Link>
                 </div>
               </div>
 
