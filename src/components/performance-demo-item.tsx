@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 
 interface Item {
   id: number;
@@ -15,44 +15,75 @@ interface Item {
 
 interface PerformanceDemoItemProps {
   item: Item;
-  searchTerm: string; // This prop causes unnecessary re-renders
+  searchTerm: string;
 }
 
-export function PerformanceDemoItem({ item, searchTerm }: PerformanceDemoItemProps) {
+function PerformanceDemoItemComponent({ item, searchTerm }: PerformanceDemoItemProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  // Expensive computation that runs on every render - performance issue #3
-  const highlightedName = item.name.split(new RegExp(`(${searchTerm})`, 'gi')).map((part, i) => (
-    <span
-      key={i}
-      className={part.toLowerCase() === searchTerm.toLowerCase() ? 'bg-yellow-200' : ''}
-    >
-      {part}
-    </span>
-  ));
+  // Memoize expensive highlighting computations
+  const highlightedName = useMemo(() => {
+    if (!searchTerm) return item.name;
+    return item.name.split(new RegExp(`(${searchTerm})`, 'gi')).map((part, i) => (
+      <span
+        key={i}
+        className={part.toLowerCase() === searchTerm.toLowerCase() ? 'bg-yellow-200' : ''}
+      >
+        {part}
+      </span>
+    ));
+  }, [item.name, searchTerm]);
 
-  // Another expensive computation - performance issue #4
-  const highlightedDescription = item.description.split(new RegExp(`(${searchTerm})`, 'gi')).map((part, i) => (
-    <span
-      key={i}
-      className={part.toLowerCase() === searchTerm.toLowerCase() ? 'bg-yellow-200' : ''}
-    >
-      {part}
-    </span>
-  ));
+  const highlightedDescription = useMemo(() => {
+    if (!searchTerm) return item.description;
+    return item.description.split(new RegExp(`(${searchTerm})`, 'gi')).map((part, i) => (
+      <span
+        key={i}
+        className={part.toLowerCase() === searchTerm.toLowerCase() ? 'bg-yellow-200' : ''}
+      >
+        {part}
+      </span>
+    ));
+  }, [item.description, searchTerm]);
 
-  // Expensive operation that doesn't need to run on every render
-  const relatedItems = Array.from({ length: 10 }, (_, i) => ({
-    id: item.id * 100 + i,
-    name: `Related ${i}`,
-  }));
+  // Memoize expensive related items computation
+  const relatedItems = useMemo(() => {
+    return Array.from({ length: 10 }, (_, i) => ({
+      id: item.id * 100 + i,
+      name: `Related ${i}`,
+    }));
+  }, [item.id]);
 
-  // Simulating some complex calculations
-  const discountPrice = item.price * 0.9;
-  const taxAmount = discountPrice * 0.08;
-  const totalPrice = (discountPrice + taxAmount) * quantity;
+  // Memoize complex calculations
+  const { discountPrice, taxAmount, totalPrice } = useMemo(() => {
+    const discount = item.price * 0.9;
+    const tax = discount * 0.08;
+    const total = (discount + tax) * quantity;
+    return {
+      discountPrice: discount,
+      taxAmount: tax,
+      totalPrice: total
+    };
+  }, [item.price, quantity]);
+
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleToggleExpanded = useCallback(() => {
+    setIsExpanded(prev => !prev);
+  }, []);
+
+  const handleToggleFavorite = useCallback(() => {
+    setIsFavorite(prev => !prev);
+  }, []);
+
+  const handleDecreaseQuantity = useCallback(() => {
+    setQuantity(prev => Math.max(1, prev - 1));
+  }, []);
+
+  const handleIncreaseQuantity = useCallback(() => {
+    setQuantity(prev => prev + 1);
+  }, []);
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -61,7 +92,7 @@ export function PerformanceDemoItem({ item, searchTerm }: PerformanceDemoItemPro
           {searchTerm ? highlightedName : item.name}
         </h3>
         <button
-          onClick={() => setIsFavorite(!isFavorite)}
+          onClick={handleToggleFavorite}
           className={`text-xl ${isFavorite ? 'text-red-500' : 'text-gray-300'}`}
         >
           ♥
@@ -134,7 +165,7 @@ export function PerformanceDemoItem({ item, searchTerm }: PerformanceDemoItemPro
       <div className="flex justify-between items-center mt-3">
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+            onClick={handleDecreaseQuantity}
             className="px-2 py-1 bg-gray-200 rounded text-sm"
             disabled={quantity <= 1}
           >
@@ -142,7 +173,7 @@ export function PerformanceDemoItem({ item, searchTerm }: PerformanceDemoItemPro
           </button>
           <span className="px-2">{quantity}</span>
           <button
-            onClick={() => setQuantity(quantity + 1)}
+            onClick={handleIncreaseQuantity}
             className="px-2 py-1 bg-gray-200 rounded text-sm"
           >
             +
@@ -151,7 +182,7 @@ export function PerformanceDemoItem({ item, searchTerm }: PerformanceDemoItemPro
         
         <div className="space-x-2">
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={handleToggleExpanded}
             className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
           >
             {isExpanded ? 'Less' : 'More'}
@@ -167,3 +198,6 @@ export function PerformanceDemoItem({ item, searchTerm }: PerformanceDemoItemPro
     </div>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const PerformanceDemoItem = memo(PerformanceDemoItemComponent);

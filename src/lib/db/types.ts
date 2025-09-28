@@ -3,7 +3,7 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from "drizzle-zod";
-import { users, posts, postLikes, queryAnalyses } from "./schema";
+import { users, posts, postLikes } from "./schema";
 import z from "zod";
 
 // User schemas
@@ -31,9 +31,6 @@ export const updatePostSchema = createUpdateSchema(posts, {
 export const insertPostLikeSchema = createInsertSchema(postLikes);
 export const selectPostLikeSchema = createSelectSchema(postLikes);
 
-// QueryAnalysis schemas
-export const insertQueryAnalysisSchema = createInsertSchema(queryAnalyses);
-export const selectQueryAnalysisSchema = createSelectSchema(queryAnalyses);
 
 // Types
 export type User = typeof users.$inferSelect;
@@ -43,5 +40,3 @@ export type Post = typeof posts.$inferSelect;
 export type NewPost = typeof posts.$inferInsert;
 export type PostLike = typeof postLikes.$inferSelect;
 export type NewPostLike = typeof postLikes.$inferInsert;
-export type QueryAnalysis = typeof queryAnalyses.$inferSelect;
-export type NewQueryAnalysis = typeof queryAnalyses.$inferInsert;
