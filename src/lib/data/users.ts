@@ -8,7 +8,12 @@ export async function getUserById(userId: number) {
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
-  return user;
+  
+  if (!user) return null;
+  
+  // Exclude sensitive data (hashedPassword) from the response
+  const { hashedPassword, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 }
 
 export async function getUserWithPosts(userId: number) {

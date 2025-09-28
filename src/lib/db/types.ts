@@ -18,13 +18,13 @@ export const updateUserSchema = insertUserSchema.omit({
 // Post schemas
 export const insertPostSchema = createInsertSchema(posts, {
   title: z.string().min(1).max(100),
-  content: z.string().min(1),
+  content: z.string().min(1).max(5000),
   authorId: z.number(),
 });
 export const selectPostSchema = createSelectSchema(posts);
 export const updatePostSchema = createUpdateSchema(posts, {
   title: z.string().min(1).max(100).optional(),
-  content: z.string().min(1).optional(),
+  content: z.string().min(1).max(5000).optional(),
 });
 
 // Types

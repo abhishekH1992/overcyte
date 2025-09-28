@@ -46,13 +46,16 @@ export async function createPostAction(_prevState: any, formData: FormData) {
 }
 
 export async function updatePostAction(formData: FormData) {
+  const session = await getSession();
+
+  if (!session) {
+    return { error: "Unauthorized" };
+  }
+
   const rawData = {
     id: parseInt(formData.get("id")?.toString() || "0"),
     title: formData.get("title")?.toString(),
     content: formData.get("content")?.toString(),
-    authorId: formData.get("authorId")?.toString()
-      ? parseInt(formData.get("authorId")!.toString())
-      : undefined,
   };
 
   const validated = updatePostSchema.safeParse(rawData);
@@ -73,6 +76,21 @@ export async function updatePostAction(formData: FormData) {
   }
 
   try {
+    // First check if the post exists and belongs to the current user
+    const [existingPost] = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, validated.data.id))
+      .limit(1);
+
+    if (!existingPost) {
+      return { error: "Post not found" };
+    }
+
+    if (existingPost.authorId !== session.userId) {
+      return { error: "Unauthorized - You can only update your own posts" };
+    }
+
     const [updatedPost] = await db
       .update(posts)
       .set(cleanUpdateData)
@@ -88,6 +106,12 @@ export async function updatePostAction(formData: FormData) {
 }
 
 export async function deletePostAction(formData: FormData) {
+  const session = await getSession();
+
+  if (!session) {
+    return { error: "Unauthorized" };
+  }
+
   const postId = formData.get("postId")?.toString();
 
   if (!postId || isNaN(parseInt(postId))) {
@@ -95,6 +119,21 @@ export async function deletePostAction(formData: FormData) {
   }
 
   try {
+    // First check if the post exists and belongs to the current user
+    const [existingPost] = await db
+      .select()
+      .from(posts)
+      .where(eq(posts.id, parseInt(postId)))
+      .limit(1);
+
+    if (!existingPost) {
+      return { error: "Post not found" };
+    }
+
+    if (existingPost.authorId !== session.userId) {
+      return { error: "Unauthorized - You can only delete your own posts" };
+    }
+
     await db.delete(posts).where(eq(posts.id, parseInt(postId)));
 
     revalidatePath("/dashboard");
