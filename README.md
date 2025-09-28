@@ -45,6 +45,10 @@ pnpm dev
 | **Suspense boundaries** | Missing loading states for async components | Added Suspense boundaries around DashboardStats and PrefetchedPosts |
 | **Form transitions** | No loading feedback during form submissions | Implemented useActionState with isPending for form submissions |
 | **Streaming performance** | Poor perceived performance | Used Suspense for better perceived performance with loading components |
+| **Post content validation** | No limit on post content length | Added max 5000 character limit for post content |
+| **Post sorting** | Posts showing by creation order instead of latest | Changed sorting to show latest posts first by date |
+| **Date formatting** | Poor date display format | Changed to proper format like "Sep 28, 2025" using proper month names |
+| **User object security** | Password field exposed in user objects | Removed password field from user object when accessing user data |
 
 ### Fair AI Usage
 
