@@ -1,17 +1,17 @@
 import { db } from '@/lib/db';
 import { users, posts } from '@/lib/db/schema';
-import { sum } from 'drizzle-orm';
+import { sum, count } from 'drizzle-orm';
 
 async function getTotalUsers() {
   await new Promise(resolve => setTimeout(resolve, 800));
-  const userCount = await db.select().from(users);
-  return userCount.length;
+  const [result] = await db.select({ count: count() }).from(users);
+  return result.count;
 }
 
 async function getTotalPosts() {
   await new Promise(resolve => setTimeout(resolve, 600));
-  const postCount = await db.select().from(posts);
-  return postCount.length;
+  const [result] = await db.select({ count: count() }).from(posts);
+  return result.count;
 }
 
 async function getTotalLikes() {
