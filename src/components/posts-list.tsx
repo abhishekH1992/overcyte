@@ -84,7 +84,7 @@ export function PostsList({
               <div className="flex items-center text-sm text-gray-500">
                 <LikeButton
                   postId={post.id}
-                  initialLikeCount={post.likeCount}
+                  initialLikeCount={Math.max(0, post.likeCount)}
                 />
               </div>
             </div>

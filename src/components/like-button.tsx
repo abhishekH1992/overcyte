@@ -1,7 +1,7 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 
 interface LikeButtonProps {
   postId: number;
@@ -9,8 +9,21 @@ interface LikeButtonProps {
 }
 
 export function LikeButton({ postId, initialLikeCount }: LikeButtonProps) {
-  const [liked, setLiked] = useState(false);
-  const [optimisticCount, setOptimisticCount] = useState(initialLikeCount);
+  const [optimisticCount, setOptimisticCount] = useState(Math.max(0, initialLikeCount));
+
+  // Fetch user's like status for this post
+  const { data: likeStatus, refetch: refetchLikeStatus } = useQuery({
+    queryKey: ["like-status", postId],
+    queryFn: async () => {
+      const response = await fetch(`/api/posts/${postId}/like-status`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch like status");
+      }
+      return response.json();
+    },
+  });
+
+  const liked = likeStatus?.hasLiked || false;
 
   const likeMutation = useMutation({
     mutationFn: async ({ action }: { action: "like" | "unlike" }) => {
@@ -25,21 +38,24 @@ export function LikeButton({ postId, initialLikeCount }: LikeButtonProps) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update like");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update like");
       }
 
       return response.json();
     },
     onMutate: async ({ action }) => {
-      setLiked(action === "like");
       setOptimisticCount((prev) =>
         action === "like" ? prev + 1 : Math.max(0, prev - 1)
       );
     },
+    onSuccess: () => {
+      // Refetch like status after successful mutation
+      refetchLikeStatus();
+    },
     onError: (error) => {
       console.error("Like mutation failed:", error);
-      setLiked(!liked);
-      setOptimisticCount(initialLikeCount);
+      setOptimisticCount(Math.max(0, initialLikeCount));
     },
   });
 

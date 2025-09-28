@@ -20,7 +20,7 @@ export function PrefetchedPosts({ postsPromise }: PrefetchedPostsProps) {
             {post.content}
           </p>
           <div className="text-xs text-gray-500 mt-2">
-            {post.likeCount} likes •{" "}
+            {Math.max(0, post.likeCount)} likes •{" "}
             {new Date(post.createdAt).toLocaleDateString()}
           </div>
         </div>

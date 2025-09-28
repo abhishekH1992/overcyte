@@ -30,13 +30,43 @@ export const posts = sqliteTable("posts", {
   createdAtIdx: index("posts_created_at_idx").on(table.createdAt),
 }));
 
-export const usersRelations = relations(users, ({ many }) => ({
-  posts: many(posts),
+export const postLikes = sqliteTable("post_likes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  postId: integer("post_id")
+    .notNull()
+    .references(() => posts.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+}, (table) => ({
+  userIdIdx: index("post_likes_user_id_idx").on(table.userId),
+  postIdIdx: index("post_likes_post_id_idx").on(table.postId),
+  userPostIdx: index("post_likes_user_post_idx").on(table.userId, table.postId),
 }));
 
-export const postsRelations = relations(posts, ({ one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
+  posts: many(posts),
+  postLikes: many(postLikes),
+}));
+
+export const postsRelations = relations(posts, ({ one, many }) => ({
   author: one(users, {
     fields: [posts.authorId],
     references: [users.id],
+  }),
+  likes: many(postLikes),
+}));
+
+export const postLikesRelations = relations(postLikes, ({ one }) => ({
+  user: one(users, {
+    fields: [postLikes.userId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [postLikes.postId],
+    references: [posts.id],
   }),
 }));
