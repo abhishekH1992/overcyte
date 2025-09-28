@@ -15,6 +15,11 @@ export async function seedDatabase(
   database: LibSQLDatabase<typeof schema>,
   opts: Options
 ) {
+  // Clear existing data first to avoid conflicts
+  await database.delete(schema.postLikes);
+  await database.delete(schema.posts);
+  await database.delete(schema.users);
+  
   // @ts-ignore
   await seed(database, seedSchema).refine((f) => ({
     users: {
