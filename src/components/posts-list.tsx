@@ -78,7 +78,11 @@ export function PostsList({
                 <div className="mt-4 flex items-center text-sm text-gray-500">
                   <span>By {post.author?.username || "Unknown"}</span>
                   <span className="mx-2">•</span>
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(post.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}</span>
                 </div>
               </div>
               <div className="flex items-center text-sm text-gray-500">

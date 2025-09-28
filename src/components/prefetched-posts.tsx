@@ -22,7 +22,11 @@ export function PrefetchedPosts({ postsPromise }: PrefetchedPostsProps) {
           </p>
           <div className="text-xs text-gray-500 mt-2">
             {formatCount(Math.max(0, post.likeCount))} likes •{" "}
-            {new Date(post.createdAt).toLocaleDateString()}
+            {new Date(post.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })}
           </div>
         </div>
       ))}
