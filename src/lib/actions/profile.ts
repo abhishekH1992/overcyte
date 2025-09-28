@@ -22,7 +22,6 @@ export async function updateProfileAction(formData: FormData) {
 
     const rawData = {
       username: formData.get("username")?.toString(),
-      hashedPassword: formData.get("hashedPassword")?.toString(),
       currentPassword: formData.get("currentPassword")?.toString(),
       newPassword: formData.get("newPassword")?.toString(),
     };
