@@ -3,19 +3,19 @@ import { users, posts } from '@/lib/db/schema';
 import { sum, count } from 'drizzle-orm';
 
 async function getTotalUsers() {
-  await new Promise(resolve => setTimeout(resolve, 800));
+  // Remove artificial delay for better user experience
   const [result] = await db.select({ count: count() }).from(users);
   return result.count;
 }
 
 async function getTotalPosts() {
-  await new Promise(resolve => setTimeout(resolve, 600));
+  // Remove artificial delay for better user experience
   const [result] = await db.select({ count: count() }).from(posts);
   return result.count;
 }
 
 async function getTotalLikes() {
-  await new Promise(resolve => setTimeout(resolve, 400));
+  // Remove artificial delay for better user experience
   const [result] = await db.select({ total: sum(posts.likeCount) }).from(posts);
   return result.total || 0;
 }

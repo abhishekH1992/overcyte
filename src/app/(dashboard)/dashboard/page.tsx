@@ -1,8 +1,8 @@
 import { getSession } from "@/lib/auth/utils";
 import { getUserWithPosts } from "@/lib/data/users";
-import { getPostsWithAuthors, getAllPosts } from "@/lib/data/posts";
+import { getPostsWithAuthorsPaginated, getAllPosts } from "@/lib/data/posts";
 import { UserProfile } from "@/components/user-profile";
-import { PostsList } from "@/components/posts-list";
+import { PaginatedPostsList } from "@/components/paginated-posts-list";
 import { DashboardStats } from "@/components/dashboard-stats";
 import { PrefetchedPosts } from "@/components/prefetched-posts";
 import { CreatePostForm } from "@/components/create-post-form";
@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   }
 
   const userData = await getUserWithPosts(session.userId);
-  const allPosts = await getPostsWithAuthors();
+  const postsData = await getPostsWithAuthorsPaginated(1, 10);
   const postsPromise = getAllPosts();
 
   if (!userData) {
@@ -74,7 +74,10 @@ export default async function DashboardPage() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   All Posts
                 </h2>
-                <PostsList posts={allPosts} />
+                <PaginatedPostsList 
+                  initialPosts={postsData.posts} 
+                  initialPagination={postsData.pagination} 
+                />
               </div>
             </div>
           </div>

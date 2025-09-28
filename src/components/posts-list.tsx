@@ -3,14 +3,24 @@
 import { useState, useMemo } from "react";
 import { LikeButton } from "./like-button";
 import { Post, User } from "@/lib/db/types";
+import { Pagination } from "./pagination";
 
 interface PostsListProps {
   posts: (Post & {
     author: User;
   })[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  onPageChange?: (page: number) => void;
 }
 
-export function PostsList({ posts }: PostsListProps) {
+export function PostsList({ posts, pagination, onPageChange }: PostsListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "likes">("date");
 
@@ -94,6 +104,16 @@ export function PostsList({ posts }: PostsListProps) {
           </div>
         ))}
       </div>
+
+      {pagination && onPageChange && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={onPageChange}
+          hasNext={pagination.hasNext}
+          hasPrev={pagination.hasPrev}
+        />
+      )}
     </div>
   );
 }

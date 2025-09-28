@@ -1,9 +1,9 @@
 "use client";
 
-import { User } from "@/lib/db/types";
+import { UserWithoutPassword } from "@/lib/db/types";
 
 interface UserProfileProps {
-  user: User;
+  user: UserWithoutPassword;
 }
 
 export function UserProfile({ user }: UserProfileProps) {
