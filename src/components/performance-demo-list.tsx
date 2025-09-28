@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { PerformanceDemoItem } from "./performance-demo-item";
 import { Pagination } from "./pagination";
 
@@ -20,7 +20,7 @@ const generateItems = (count: number) => {
 
 const ITEMS = generateItems(5000); // 5000 items to cause performance issues
 
-export function PerformanceDemoList() {
+function PerformanceDemoListComponent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name");
@@ -62,12 +62,14 @@ export function PerformanceDemoList() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedItems = sortedItems.slice(startIndex, endIndex);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
-  };
+  }, []);
 
-  // Generate categories for filter
-  const categories = ["all", ...Array.from(new Set(ITEMS.map(item => item.category)))];
+  // Memoize categories generation
+  const categories = useMemo(() => {
+    return ["all", ...Array.from(new Set(ITEMS.map(item => item.category)))];
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -143,7 +145,7 @@ export function PerformanceDemoList() {
           <PerformanceDemoItem
             key={item.id}
             item={item}
-            searchTerm={searchTerm} // Passing searchTerm causes unnecessary re-renders
+            searchTerm={searchTerm}
           />
         ))}
       </div>
@@ -159,3 +161,6 @@ export function PerformanceDemoList() {
     </div>
   );
 }
+
+// Memoize the component to prevent unnecessary re-renders
+export const PerformanceDemoList = memo(PerformanceDemoListComponent);

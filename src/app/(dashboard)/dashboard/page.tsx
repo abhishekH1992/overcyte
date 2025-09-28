@@ -63,17 +63,6 @@ export default async function DashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-6 bg-white shadow rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Query Analysis</h3>
-                <div className="space-y-2">
-                  <Link
-                    href="/analyze-query"
-                    className="block px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                  >
-                    Query Analysis
-                  </Link>
-                </div>
-              </div>
 
               <div className="mt-6 bg-white shadow rounded-lg p-6">
                 <PrefetchedPosts postsPromise={postsPromise} />

@@ -3,6 +3,9 @@ import * as schema from "./lib/db/schema";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
 import { migrate } from "drizzle-orm/libsql/migrator";
 
+// Use the full schema for seeding
+const seedSchema = schema;
+
 type Options = {
   userCount: number;
   postCount: number;
@@ -12,11 +15,8 @@ export async function seedDatabase(
   database: LibSQLDatabase<typeof schema>,
   opts: Options
 ) {
-  // migrate database
-  await migrate(database, { migrationsFolder: "./drizzle" });
-
   // @ts-ignore
-  await seed(database, schema).refine((f) => ({
+  await seed(database, seedSchema).refine((f) => ({
     users: {
       count: opts.userCount,
       with: {
