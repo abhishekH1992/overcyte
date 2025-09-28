@@ -26,7 +26,7 @@ export function PostsList({ posts }: PostsListProps) {
           .toLowerCase()
           .includes(searchTerm.toLowerCase());
         const authorMatch = post.author?.username
-          .toLowerCase()
+          ?.toLowerCase()
           .includes(searchTerm.toLowerCase());
 
         const complexCalculation = Array.from({ length: 1000 }, (_, i) => {

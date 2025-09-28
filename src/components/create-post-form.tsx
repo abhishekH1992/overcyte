@@ -1,16 +1,20 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createPostAction } from "@/lib/actions/posts";
 
 export function CreatePostForm() {
   const [state, formAction, isPending] = useActionState(createPostAction, null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [titleLength, setTitleLength] = useState(0);
+  const [contentLength, setContentLength] = useState(0);
 
   // Clear form on successful submission
   useEffect(() => {
     if (state?.success && formRef.current) {
       formRef.current.reset();
+      setTitleLength(0);
+      setContentLength(0);
     }
   }, [state?.success]);
 
@@ -33,10 +37,17 @@ export function CreatePostForm() {
             id="title"
             name="title"
             required
+            maxLength={100}
             disabled={isPending}
+            onChange={(e) => setTitleLength(e.target.value.length)}
             className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
             placeholder="Enter post title"
           />
+          {titleLength > 0 && (
+            <div className="text-xs text-gray-500 mt-1">
+              {titleLength}/100 characters
+            </div>
+          )}
         </div>
 
         <div>
@@ -51,14 +62,18 @@ export function CreatePostForm() {
             name="content"
             rows={4}
             required
+            maxLength={5000}
             disabled={isPending}
+            onChange={(e) => setContentLength(e.target.value.length)}
             className="text-black w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50"
             placeholder="What's on your mind?"
           />
+          {contentLength > 0 && (
+            <div className="text-xs text-gray-500 mt-1">
+              {contentLength}/5000 characters
+            </div>
+          )}
         </div>
-
-        {/* Hidden field that demonstrates the security vulnerability */}
-        <input type="hidden" name="authorId" value="1" />
 
         {state?.error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">

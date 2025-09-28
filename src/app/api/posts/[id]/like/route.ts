@@ -3,10 +3,11 @@ import { db } from "@/lib/db";
 import { posts } from "@/lib/db/schema";
 import { getSession } from "@/lib/auth/utils";
 import { eq, sql } from "drizzle-orm";
+import { z } from "zod";
 
-type Payload = {
-  action: "like" | "unlike";
-};
+const payloadSchema = z.object({
+  action: z.enum(["like", "unlike"]),
+});
 
 export async function POST(
   request: NextRequest,
@@ -27,22 +28,27 @@ export async function POST(
       return NextResponse.json({ error: "Invalid post ID" }, { status: 400 });
     }
 
-    const body: Payload = await request.json();
+    const rawBody = await request.json();
+    const validationResult = payloadSchema.safeParse(rawBody);
 
-    if (body.action === "like") {
+    if (!validationResult.success) {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
+    const { action } = validationResult.data;
+
+    if (action === "like") {
       await db
         .update(posts)
         .set({
-          likeCount: sql`${posts.likeCount} + 1`,
-          ...body,
+          likeCount: sql`${posts.likeCount} + 1`
         })
         .where(eq(posts.id, postId));
     } else {
       await db
         .update(posts)
         .set({
-          likeCount: sql`CASE WHEN ${posts.likeCount} > 0 THEN ${posts.likeCount} - 1 ELSE 0 END`,
-          ...body,
+          likeCount: sql`CASE WHEN ${posts.likeCount} > 0 THEN ${posts.likeCount} - 1 ELSE 0 END`
         })
         .where(eq(posts.id, postId));
     }
@@ -56,7 +62,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       post: updatedPost,
-      message: `Post ${body.action}d successfully`,
+      message: `Post ${action}d successfully`,
     });
   } catch (error) {
     console.error("Like/unlike error:", error);
