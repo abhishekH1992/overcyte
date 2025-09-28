@@ -4,17 +4,23 @@ import { useState, useMemo, useCallback, memo } from "react";
 import { PerformanceDemoItem } from "./performance-demo-item";
 import { Pagination } from "./pagination";
 
-// Generate a large dataset
+// Deterministic pseudo-random number generator to avoid hydration mismatches
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
+// Generate a large dataset with deterministic values
 const generateItems = (count: number) => {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     name: `Item ${i}`,
     description: `This is a description for item ${i}. It contains some text that makes each item unique.`,
-    price: Math.floor(Math.random() * 1000) + 10,
+    price: Math.floor(seededRandom(i) * 1000) + 10,
     category: `Category ${i % 10}`,
     tags: [`tag${i % 5}`, `tag${(i + 1) % 5}`, `tag${(i + 2) % 5}`],
-    inStock: Math.random() > 0.3,
-    rating: Math.floor(Math.random() * 5) + 1,
+    inStock: seededRandom(i + 1000) > 0.3,
+    rating: Math.floor(seededRandom(i + 2000) * 5) + 1,
   }));
 };
 

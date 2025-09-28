@@ -36,7 +36,9 @@ export async function registerAction(_prevState: any, formData: FormData) {
 
   const validated = registerSchema.safeParse(rawData);
   if (!validated.success) {
-    return { error: "Invalid input data" };
+    // Return all validation error messages
+    const errorMessages = validated.error.issues.map(issue => issue.message);
+    return { error: errorMessages.join('\n') };
   }
 
   const { username, password } = validated.data;
