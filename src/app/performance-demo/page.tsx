@@ -1,5 +1,7 @@
 import { PerformanceDemoList } from "@/components/performance-demo-list";
 import Link from "next/link";
+import { Suspense } from "react";
+import { PerformanceDemoLoading } from "@/components/loading-components";
 
 export default function PerformanceDemoPage() {
   return (
@@ -23,7 +25,9 @@ export default function PerformanceDemoPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <PerformanceDemoList />
+          <Suspense fallback={<PerformanceDemoLoading />}>
+            <PerformanceDemoList />
+          </Suspense>
         </div>
       </main>
     </div>

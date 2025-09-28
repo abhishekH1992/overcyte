@@ -9,6 +9,8 @@ import { CreatePostForm } from "@/components/create-post-form";
 import { logoutAction } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
+import { DashboardStatsLoading, PrefetchedPostsLoading, PostsListLoading } from "@/components/loading-components";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -45,7 +47,9 @@ export default async function DashboardPage() {
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          <DashboardStats />
+          <Suspense fallback={<DashboardStatsLoading />}>
+            <DashboardStats />
+          </Suspense>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <div className="lg:col-span-1">
@@ -63,9 +67,10 @@ export default async function DashboardPage() {
                 </div>
               </div>
 
-
               <div className="mt-6 bg-white shadow rounded-lg p-6">
-                <PrefetchedPosts postsPromise={postsPromise} />
+                <Suspense fallback={<PrefetchedPostsLoading />}>
+                  <PrefetchedPosts postsPromise={postsPromise} />
+                </Suspense>
               </div>
             </div>
 
@@ -76,10 +81,12 @@ export default async function DashboardPage() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   All Posts
                 </h2>
-                <PaginatedPostsList 
-                  initialPosts={postsData.posts} 
-                  initialPagination={postsData.pagination} 
-                />
+                <Suspense fallback={<PostsListLoading />}>
+                  <PaginatedPostsList 
+                    initialPosts={postsData.posts} 
+                    initialPagination={postsData.pagination} 
+                  />
+                </Suspense>
               </div>
             </div>
           </div>

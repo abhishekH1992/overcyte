@@ -1,0 +1,113 @@
+# Technical Interview Exercise - Task List
+
+## Issues Identified and Tasks to Complete (2-hour timeframe)
+
+### 1. Data Validation Issues ✅ COMPLETED
+- **Issue**: Hidden `authorId` field in `create-post-form.tsx` (line 61) allows unauthorized post creation
+- **Fix**: Remove hidden field, rely on session-based `authorId` from server action
+- **Files**: `src/components/create-post-form.tsx`
+- **Additional**: Added content length validation (max 5000 characters)
+
+### 2. Database Query Optimization ✅ COMPLETED
+- **Issue**: `dashboard-stats.tsx` loads all users/posts instead of using COUNT queries
+- **Fix**: Replace `db.select().from(users)` with `db.select({ count: count() }).from(users)`
+- **Files**: `src/components/dashboard-stats.tsx`
+
+### 3. Database Indexes ✅ COMPLETED
+- **Issue**: Missing indexes for frequently queried fields
+- **Fix**: Add indexes for `username`, `authorId`, and `likeCount` in schema
+- **Files**: `src/lib/db/schema.ts`, create migration
+
+### 4. React Performance Issues ✅ COMPLETED
+- **Issues**: 
+  - Expensive computations in `performance-demo-item.tsx` (lines 27-50)
+  - Missing memoization in `performance-demo-list.tsx` (lines 29-50)
+  - Unnecessary re-renders due to prop passing
+- **Fix**: Add `useMemo`, `useCallback`, and `React.memo` optimizations
+- **Files**: `src/components/performance-demo-*.tsx`
+- **Status**: All optimizations implemented - memoized expensive computations, event handlers, and components
+
+### 5. Effect Refactoring ✅ COMPLETED
+- **Issue**: `registerUser` function in `src/lib/workflows/registration.ts` uses try-catch blocks
+- **Fix**: Refactor using Effect for better error handling and composition
+- **Files**: `src/lib/workflows/registration.ts`
+- **Status**: Refactored to use Effect with proper error handling, composition, and parallel execution
+
+### 6. Suspense and Transitions ✅ COMPLETED
+- **Issue**: Missing loading states and transitions
+- **Fix**: Add Suspense boundaries and useTransition for form submissions
+- **Files**: Dashboard page, form components
+- **Status**: `useActionState` with `isPending` used in forms, Suspense boundaries added around async components
+
+### 7. Sensitive Data Leak ❌ NOT COMPLETED
+- **Issue**: `hashedPassword` field exposed in profile update form (line 25 in `profile.ts`)
+- **Fix**: Remove `hashedPassword` from form data, handle password updates separately
+- **Files**: `src/lib/actions/profile.ts`
+- **Status**: Still reads `hashedPassword` from form data (line 25) - **NEEDS FIX**
+
+### 8. Additional Security Issues ✅ COMPLETED
+- **Issue**: Like API route spreads request body into database update (lines 37, 45)
+- **Fix**: Remove `...body` spread to prevent injection
+- **Files**: `src/app/api/posts/[id]/like/route.ts`
+
+### 9. Unsafe Data Access ✅ COMPLETED
+- **Issue**: `post.author?.username` could be undefined when calling `toLowerCase()` in search
+- **Fix**: Added proper null checking with `|| false` fallback
+- **Files**: `src/components/posts-list.tsx`
+
+### 10. Post Authorization ✅ COMPLETED
+- **Issue**: Users could update/delete any post without ownership check
+- **Fix**: Added ownership validation in `updatePostAction` and `deletePostAction`
+- **Files**: `src/lib/actions/posts.ts`
+
+### 1. Data Validation & Security
+- [x] **Missing input validation in API routes** - `/api/posts/[id]/like/route.ts` now validates request body with Zod schema
+- [x] **SQL injection protection** - All queries use parameterized statements via Drizzle ORM
+- [x] **Password validation messages** - Added specific error messages for password policy violations
+- [ ] **Sensitive data leak** - `hashedPassword` field exposed in profile update form
+
+### 2. Database Performance
+- [x] **Missing database indexes** - Added indexes for:
+  - `users.username` (usernameIdx)
+  - `posts.authorId` (authorIdIdx)
+  - `posts.createdAt` (createdAtIdx)
+  - `posts.likeCount` (likeCountIdx)
+  - `postLikes.userId` and `postLikes.postId` (composite index)
+- [x] **N+1 query problems** - `getUserWithPosts` makes separate queries (verified: only 2 queries - user + posts)
+- [x] **Inefficient data loading** - Dashboard loads all posts without pagination (verified: uses `getPostsWithAuthorsPaginated` with pagination)
+
+### 3. React Performance Issues
+- [x] **PerformanceDemoList** - Added useMemo for filtering/sorting, React.memo for component
+- [x] **PerformanceDemoItem** - Added useMemo for expensive computations, useCallback for handlers, React.memo
+- [x] **PostsList** - Removed complex client-side filtering, now uses server-side processing
+- [x] **Missing memoization** - Added useMemo, useCallback, and React.memo throughout
+- [x] **No virtualization** - Added pagination to limit rendered items
+- [x] **Hydration mismatch** - Fixed Math.random() causing server/client differences with deterministic seeded random
+
+### 4. Effect Refactoring
+- [x] **registerUser function** - Refactored using Effect for:
+  - Better error handling with Effect.tryPromise and Effect.catchAll
+  - Resource management with proper cleanup
+  - Composition of async operations with Effect.flatMap and Effect.all
+  - Transaction-like behavior with sequential and parallel execution
+
+### 5. App Router Features
+- [x] **Suspense boundaries** - Added loading states for async components (DashboardStats, PrefetchedPosts)
+- [x] **Transitions** - Implemented useActionState with isPending for form submissions
+- [x] **Streaming** - Use Suspense for better perceived performance (implemented with loading components)
+
+## Progress Summary
+- **Completed**: 12/13 tasks (92%)
+- **Partially Completed**: 0/13 tasks (0%)
+- **Not Completed**: 1/13 tasks (8%)
+- **Time Used**: ~80 minutes
+- **Time Remaining**: ~40 minutes
+
+## Updated Analysis (After Code Review)
+- **Sensitive Data Leak**: Still present - `hashedPassword` field exposed in profile form
+- **N+1 Queries**: Actually not an issue - `getUserWithPosts` only makes 2 queries (user + posts)
+- **Dashboard Pagination**: Actually implemented - uses `getPostsWithAuthorsPaginated` with proper pagination
+- **Suspense Boundaries**: ✅ Implemented - Added Suspense boundaries around DashboardStats and PrefetchedPosts with loading fallbacks
+
+## Total Estimated Time: 2 hours
+## Priority Order: Security issues first, then performance, then features
