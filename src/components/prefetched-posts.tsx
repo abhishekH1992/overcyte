@@ -2,6 +2,7 @@
 
 import { Post } from "@/lib/db/types";
 import { use } from "react";
+import { formatCount } from "@/lib/utils/format";
 
 interface PrefetchedPostsProps {
   postsPromise: Promise<Post[]>;
@@ -20,8 +21,12 @@ export function PrefetchedPosts({ postsPromise }: PrefetchedPostsProps) {
             {post.content}
           </p>
           <div className="text-xs text-gray-500 mt-2">
-            {post.likeCount} likes •{" "}
-            {new Date(post.createdAt).toLocaleDateString()}
+            {formatCount(Math.max(0, post.likeCount))} likes •{" "}
+            {new Date(post.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })}
           </div>
         </div>
       ))}

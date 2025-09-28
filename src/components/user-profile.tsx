@@ -1,9 +1,9 @@
 "use client";
 
-import { User } from "@/lib/db/types";
+import { UserWithoutPassword } from "@/lib/db/types";
 
 interface UserProfileProps {
-  user: User;
+  user: UserWithoutPassword;
 }
 
 export function UserProfile({ user }: UserProfileProps) {
@@ -20,7 +20,11 @@ export function UserProfile({ user }: UserProfileProps) {
         <div className="ml-4">
           <h3 className="text-lg font-medium text-gray-900">{user.username}</h3>
           <p className="text-sm text-gray-500">
-            Member since {new Date(user.createdAt).toLocaleDateString()}
+            Member since {new Date(user.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
           </p>
         </div>
       </div>

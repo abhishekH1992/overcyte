@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 import { relations } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
@@ -8,7 +8,10 @@ export const users = sqliteTable("users", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
-});
+}, (table) => ({
+  usernameIdx: index("username_idx").on(table.username),
+  createdAtIdx: index("users_created_at_idx").on(table.createdAt),
+}));
 
 export const posts = sqliteTable("posts", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -21,15 +24,67 @@ export const posts = sqliteTable("posts", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
-});
+}, (table) => ({
+  authorIdIdx: index("author_id_idx").on(table.authorId),
+  likeCountIdx: index("like_count_idx").on(table.likeCount),
+  createdAtIdx: index("posts_created_at_idx").on(table.createdAt),
+}));
+
+export const postLikes = sqliteTable("post_likes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  postId: integer("post_id")
+    .notNull()
+    .references(() => posts.id),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+}, (table) => ({
+  userIdIdx: index("post_likes_user_id_idx").on(table.userId),
+  postIdIdx: index("post_likes_post_id_idx").on(table.postId),
+  userPostIdx: index("post_likes_user_post_idx").on(table.userId, table.postId),
+}));
 
 export const usersRelations = relations(users, ({ many }) => ({
   posts: many(posts),
+  postLikes: many(postLikes),
 }));
 
-export const postsRelations = relations(posts, ({ one }) => ({
+export const postsRelations = relations(posts, ({ one, many }) => ({
   author: one(users, {
     fields: [posts.authorId],
     references: [users.id],
+  }),
+  likes: many(postLikes),
+}));
+
+export const queryAnalyses = sqliteTable("query_analyses", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  query: text("query").notNull(),
+  params: text("params").notNull(), // JSON string
+  executionPlan: text("execution_plan").notNull(), // JSON string
+  hasTableScan: integer("has_table_scan", { mode: "boolean" }).notNull(),
+  hasIndexUsage: integer("has_index_usage", { mode: "boolean" }).notNull(),
+  executionTime: integer("execution_time").notNull(), // in milliseconds
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+}, (table) => ({
+  queryIdx: index("query_analyses_query_idx").on(table.query),
+  hasTableScanIdx: index("query_analyses_has_table_scan_idx").on(table.hasTableScan),
+  executionTimeIdx: index("query_analyses_execution_time_idx").on(table.executionTime),
+  createdAtIdx: index("query_analyses_created_at_idx").on(table.createdAt),
+}));
+
+export const postLikesRelations = relations(postLikes, ({ one }) => ({
+  user: one(users, {
+    fields: [postLikes.userId],
+    references: [users.id],
+  }),
+  post: one(posts, {
+    fields: [postLikes.postId],
+    references: [posts.id],
   }),
 }));

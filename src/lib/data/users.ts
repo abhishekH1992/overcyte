@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
 import { users, posts } from "@/lib/db/schema";
+import { UserWithoutPassword } from "@/lib/db/types";
 import { eq } from "drizzle-orm";
 
-export async function getUserById(userId: number) {
+export async function getUserById(userId: number): Promise<UserWithoutPassword | null> {
   const [user] = await db
     .select()
     .from(users)

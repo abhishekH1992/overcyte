@@ -1,13 +1,14 @@
 import { getSession } from "@/lib/auth/utils";
 import { getUserWithPosts } from "@/lib/data/users";
-import { getPostsWithAuthors, getAllPosts } from "@/lib/data/posts";
+import { getPostsWithAuthorsPaginated, getAllPosts } from "@/lib/data/posts";
 import { UserProfile } from "@/components/user-profile";
-import { PostsList } from "@/components/posts-list";
+import { PaginatedPostsList } from "@/components/paginated-posts-list";
 import { DashboardStats } from "@/components/dashboard-stats";
 import { PrefetchedPosts } from "@/components/prefetched-posts";
 import { CreatePostForm } from "@/components/create-post-form";
 import { logoutAction } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const session = await getSession();
@@ -17,7 +18,7 @@ export default async function DashboardPage() {
   }
 
   const userData = await getUserWithPosts(session.userId);
-  const allPosts = await getPostsWithAuthors();
+  const postsData = await getPostsWithAuthorsPaginated(1, 10);
   const postsPromise = getAllPosts();
 
   if (!userData) {
@@ -53,12 +54,24 @@ export default async function DashboardPage() {
               <div className="mt-6 bg-white shadow rounded-lg p-6">
                 <h3 className="text-lg font-semibold mb-4">Demo Pages</h3>
                 <div className="space-y-2">
-                  <a
+                  <Link
                     href="/performance-demo"
                     className="block px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                   >
                     Performance Demo
-                  </a>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-white shadow rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">Query Analysis</h3>
+                <div className="space-y-2">
+                  <Link
+                    href="/analyze-query"
+                    className="block px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  >
+                    Query Analysis
+                  </Link>
                 </div>
               </div>
 
@@ -74,7 +87,10 @@ export default async function DashboardPage() {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   All Posts
                 </h2>
-                <PostsList posts={allPosts} />
+                <PaginatedPostsList 
+                  initialPosts={postsData.posts} 
+                  initialPagination={postsData.pagination} 
+                />
               </div>
             </div>
           </div>

@@ -2,52 +2,42 @@
 
 import { useState, useMemo } from "react";
 import { LikeButton } from "./like-button";
-import { Post, User } from "@/lib/db/types";
+import { Post, UserWithoutPassword } from "@/lib/db/types";
+import { Pagination } from "./pagination";
 
 interface PostsListProps {
   posts: (Post & {
-    author: User;
+    author: UserWithoutPassword | null;
   })[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+  onPageChange?: (page: number) => void;
+  onSearch?: (search: string) => void;
+  onSort?: (sort: "date" | "likes") => void;
+  initialSearchTerm?: string;
+  initialSortBy?: "date" | "likes";
 }
 
-export function PostsList({ posts }: PostsListProps) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"date" | "likes">("date");
+export function PostsList({ 
+  posts, 
+  pagination, 
+  onPageChange, 
+  onSearch, 
+  onSort, 
+  initialSearchTerm = "", 
+  initialSortBy = "date" 
+}: PostsListProps) {
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
+  const [sortBy, setSortBy] = useState<"date" | "likes">(initialSortBy);
 
-  const processedPosts = useMemo(() => {
-    let filtered = posts;
-
-    if (searchTerm) {
-      filtered = posts.filter((post) => {
-        const titleMatch = post.title
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-        const contentMatch = post.content
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
-        const authorMatch = post.author?.username
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase());
-
-        const complexCalculation = Array.from({ length: 1000 }, (_, i) => {
-          return Math.sqrt(i * Math.PI) + Math.sin(i) + Math.cos(i);
-        }).reduce((sum, val) => sum + val, 0);
-
-        return titleMatch || contentMatch || authorMatch;
-      });
-    }
-
-    if (sortBy === "likes") {
-      filtered = [...filtered].sort((a, b) => b.likeCount - a.likeCount);
-    } else {
-      filtered = [...filtered].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    }
-
-    return filtered;
-  }, [posts, searchTerm, sortBy]);
+  // Since search and sort are now handled server-side, we just display the posts as-is
+  const processedPosts = posts;
 
   return (
     <div className="space-y-4">
@@ -56,12 +46,19 @@ export function PostsList({ posts }: PostsListProps) {
           type="text"
           placeholder="Search posts..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            onSearch?.(e.target.value);
+          }}
           className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as "date" | "likes")}
+          onChange={(e) => {
+            const newSort = e.target.value as "date" | "likes";
+            setSortBy(newSort);
+            onSort?.(newSort);
+          }}
           className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="date">Sort by Date</option>
@@ -81,19 +78,33 @@ export function PostsList({ posts }: PostsListProps) {
                 <div className="mt-4 flex items-center text-sm text-gray-500">
                   <span>By {post.author?.username || "Unknown"}</span>
                   <span className="mx-2">•</span>
-                  <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+                  <span>{new Date(post.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}</span>
                 </div>
               </div>
               <div className="flex items-center text-sm text-gray-500">
                 <LikeButton
                   postId={post.id}
-                  initialLikeCount={post.likeCount}
+                  initialLikeCount={Math.max(0, post.likeCount)}
                 />
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {pagination && onPageChange && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={onPageChange}
+          hasNext={pagination.hasNext}
+          hasPrev={pagination.hasPrev}
+        />
+      )}
     </div>
   );
 }

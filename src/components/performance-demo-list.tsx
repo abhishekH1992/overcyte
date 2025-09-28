@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PerformanceDemoItem } from "./performance-demo-item";
+import { Pagination } from "./pagination";
 
 // Generate a large dataset
 const generateItems = (count: number) => {
@@ -24,30 +25,46 @@ export function PerformanceDemoList() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [showInStockOnly, setShowInStockOnly] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   // This filter runs on every render - performance issue #1
-  const filteredItems = ITEMS.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
-    const matchesStock = !showInStockOnly || item.inStock;
-    
-    return matchesSearch && matchesCategory && matchesStock;
-  });
+  const filteredItems = useMemo(() => {
+    return ITEMS.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
+      const matchesStock = !showInStockOnly || item.inStock;
+      
+      return matchesSearch && matchesCategory && matchesStock;
+    });
+  }, [searchTerm, selectedCategory, showInStockOnly]);
 
   // This sort runs on every render - performance issue #2
-  const sortedItems = [...filteredItems].sort((a, b) => {
-    switch (sortBy) {
-      case "name":
-        return a.name.localeCompare(b.name);
-      case "price":
-        return a.price - b.price;
-      case "rating":
-        return b.rating - a.rating;
-      default:
-        return 0;
-    }
-  });
+  const sortedItems = useMemo(() => {
+    return [...filteredItems].sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "price":
+          return a.price - b.price;
+        case "rating":
+          return b.rating - a.rating;
+        default:
+          return 0;
+      }
+    });
+  }, [filteredItems, sortBy]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = sortedItems.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   // Generate categories for filter
   const categories = ["all", ...Array.from(new Set(ITEMS.map(item => item.category)))];
@@ -116,13 +133,13 @@ export function PerformanceDemoList() {
         </div>
         
         <div className="text-sm text-gray-600">
-          Showing {sortedItems.length} of {ITEMS.length} items
+          Showing {startIndex + 1}-{Math.min(endIndex, sortedItems.length)} of {sortedItems.length} items (Page {currentPage} of {totalPages})
         </div>
       </div>
 
-      {/* The expensive list - renders all items without virtualization */}
+      {/* The expensive list - now with pagination */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {sortedItems.map((item) => (
+        {paginatedItems.map((item) => (
           <PerformanceDemoItem
             key={item.id}
             item={item}
@@ -130,6 +147,15 @@ export function PerformanceDemoList() {
           />
         ))}
       </div>
+
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        hasNext={currentPage < totalPages}
+        hasPrev={currentPage > 1}
+      />
     </div>
   );
 }
