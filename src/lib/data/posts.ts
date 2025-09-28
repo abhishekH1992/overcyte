@@ -3,7 +3,7 @@ import { posts, users } from "@/lib/db/schema";
 import { eq, desc, asc, like, or, sql } from "drizzle-orm";
 
 export async function getAllPosts() {
-  return await db.select().from(posts);
+  return await db.select().from(posts).orderBy(desc(posts.createdAt));
 }
 
 export async function getPostsWithAuthors() {

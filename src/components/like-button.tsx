@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
+import { formatCount } from "@/lib/utils/format";
 
 interface LikeButtonProps {
   postId: number;
@@ -81,7 +82,7 @@ export function LikeButton({ postId, initialLikeCount }: LikeButtonProps) {
       `}
     >
       <span>{liked ? "❤️" : "🤍"}</span>
-      <span>{optimisticCount}</span>
+      <span>{formatCount(optimisticCount)}</span>
       {likeMutation.isPending && <span className="animate-spin">⏳</span>}
     </button>
   );
