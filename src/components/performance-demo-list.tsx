@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, memo } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { PerformanceDemoItem } from "./performance-demo-item";
 import { Pagination } from "./pagination";
 

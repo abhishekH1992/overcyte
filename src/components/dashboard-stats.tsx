@@ -4,19 +4,16 @@ import { sum, count } from 'drizzle-orm';
 import { formatCount } from '@/lib/utils/format';
 
 async function getTotalUsers() {
-  // Remove artificial delay for better user experience
   const [result] = await db.select({ count: count() }).from(users);
   return result.count;
 }
 
 async function getTotalPosts() {
-  // Remove artificial delay for better user experience
   const [result] = await db.select({ count: count() }).from(posts);
   return result.count;
 }
 
 async function getTotalLikes() {
-  // Remove artificial delay for better user experience
   const [result] = await db.select({ total: sum(posts.likeCount) }).from(posts);
   return result.total || 0;
 }
